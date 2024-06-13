@@ -50,14 +50,36 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/", async function (req, res, next) {
-  try {
-    const companies = await Company.findAll();
-    return res.json({ companies });
-  } catch (err) {
-    return next(err);
-  }
-});
+  router.get("/", async function (req, res, next) {
+    try {
+      // Extract query parameters
+      const { name, minEmployees, maxEmployees } = req.query;
+  
+      // Validate minEmployees and maxEmployees
+      if (minEmployees!== undefined && maxEmployees!== undefined && parseInt(minEmployees) > parseInt(maxEmployees)) {
+        return next(new BadRequestError("minEmployees cannot be greater than maxEmployees"));
+      }
+  
+      // Construct filters object
+      const filters = {};
+      if (name) {
+        filters.name = { $ilike: `%${name.toLowerCase()}%` }; // Case-insensitive partial match
+      }
+      if (minEmployees!== undefined) {
+        filters.numEmployees = { $gte: parseInt(minEmployees) };
+      }
+      if (maxEmployees!== undefined) {
+        filters.numEmployees = { $lte: parseInt(maxEmployees) };
+      }
+  
+      // Call Company.findAll with filters
+      const companies = await Company.findAll(filters);
+      return res.json({ companies });
+    } catch (err) {
+      return next(err);
+    }
+  });
+  
 
 /** GET /[handle]  =>  { company }
  *

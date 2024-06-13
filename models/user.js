@@ -22,32 +22,35 @@ class User {
    **/
 
   static async authenticate(username, password) {
-    // try to find the user first
-    const result = await db.query(
-          `SELECT username,
-                  password,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
-                  email,
-                  is_admin AS "isAdmin"
-           FROM users
-           WHERE username = $1`,
-        [username],
-    );
-
-    const user = result.rows[0];
-
-    if (user) {
+    try{
+      const result = await db.query(
+        `SELECT username,
+        password,
+        first_name AS "firstName",
+        last_name AS "lastName",
+        email,
+        is_admin AS "isAdmin"
+        FROM users
+        WHERE username = $1;
+        `,[username]
+      );
+  
+      let user = result.rows[0];
       // compare hashed password to a new hash from password
       const isValid = await bcrypt.compare(password, user.password);
       if (isValid === true) {
         delete user.password;
         return user;
       }
+      else{
+        throw new UnauthorizedError("Invalid username/password");
+      }
     }
-
-    throw new UnauthorizedError("Invalid username/password");
+    catch(err){
+      throw new UnauthorizedError("Invalid Query");
+    }
   }
+  
 
   /** Register user with data.
    *

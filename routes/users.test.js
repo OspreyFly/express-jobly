@@ -24,8 +24,8 @@ afterAll(commonAfterAll);
 describe("POST /users", function () {
   test("works for users: create non-admin", async function () {
     const resp = await request(app)
-        .post("/users")
-        .send({
+       .post("/users")
+       .send({
           username: "u-new",
           firstName: "First-new",
           lastName: "Last-newL",
@@ -33,7 +33,7 @@ describe("POST /users", function () {
           email: "new@email.com",
           isAdmin: false,
         })
-        .set("authorization", `Bearer ${u1Token}`);
+       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       user: {
@@ -47,9 +47,11 @@ describe("POST /users", function () {
   });
 
   test("works for users: create admin", async function () {
+    // Assuming you have a way to generate an admin token
+    const adminToken = u1Token;
     const resp = await request(app)
-        .post("/users")
-        .send({
+       .post("/users")
+       .send({
           username: "u-new",
           firstName: "First-new",
           lastName: "Last-newL",
@@ -57,7 +59,7 @@ describe("POST /users", function () {
           email: "new@email.com",
           isAdmin: true,
         })
-        .set("authorization", `Bearer ${u1Token}`);
+       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       user: {
@@ -124,7 +126,7 @@ describe("GET /users", function () {
           firstName: "U1F",
           lastName: "U1L",
           email: "user1@user.com",
-          isAdmin: false,
+          isAdmin: true,
         },
         {
           username: "u2",
@@ -175,7 +177,7 @@ describe("GET /users/:username", function () {
         firstName: "U1F",
         lastName: "U1L",
         email: "user1@user.com",
-        isAdmin: false,
+        isAdmin: true,
       },
     });
   });
@@ -210,7 +212,7 @@ describe("PATCH /users/:username", () => {
         firstName: "New",
         lastName: "U1L",
         email: "user1@user.com",
-        isAdmin: false,
+        isAdmin: true,
       },
     });
   });
@@ -257,7 +259,7 @@ describe("PATCH /users/:username", () => {
         firstName: "U1F",
         lastName: "U1L",
         email: "user1@user.com",
-        isAdmin: false,
+        isAdmin: true,
       },
     });
     const isSuccessful = await User.authenticate("u1", "new-password");

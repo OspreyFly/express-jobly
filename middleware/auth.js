@@ -15,33 +15,37 @@ const { UnauthorizedError } = require("../expressError");
  * It's not an error if no token was provided or if the token is not valid.
  */
 
-function authenticateJWT(req, res, next) {
+const authenticateJWT = (req, res, next) => {
   try {
     const authHeader = req.headers && req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.replace(/^[Bb]earer /, "").trim();
-      res.locals.user = jwt.verify(token, SECRET_KEY);
+    if (!authHeader) {
+      console.warn('No authorization header found. Continuing without authentication.');
+      return next();
     }
+    const token = authHeader.replace(/^[Bb]earer /, "").trim();
+    const decodedToken = jwt.verify(token, SECRET_KEY);
+    res.locals.user = decodedToken;
+    console.log('User is authenticated.');
     return next();
-  } catch (err) {
-    return next();
+  } catch (e) {
+      console.error('Error verifying token:', e.message);
+      return next(); 
   }
-}
+};
 
-/** Middleware to use when they must be logged in.
- *
- * If not, raises Unauthorized.
- */
+
+
+
 
 function ensureLoggedIn(req, res, next) {
   try {
-    if (!res.locals.user) throw new UnauthorizedError();
+    if (!res.locals.user.isAdmin) throw new UnauthorizedError();
     return next();
   } catch (err) {
-    return next(err);
+    console.warn("Could not check ANON permissions");
+    return next(new UnauthorizedError(401));
   }
 }
-
 
 module.exports = {
   authenticateJWT,

@@ -16,6 +16,60 @@ class Company {
    * Throws BadRequestError if company already in database.
    * */
 
+   /** Find all companies.
+   *
+   * Filters can be applied based on:
+   * - name: case-insensitive partial match
+   * - minEmployees: minimum number of employees
+   * - maxEmployees: maximum number of employees
+   *
+   * Returns [{ handle, name, description, numEmployees, logoUrl },...]
+   */
+   static async findAll(filters = {}) {
+  
+    let whereClause = '';
+    let queryParams = [];
+  
+    if (filters.name !== undefined) {
+      whereClause += 'name ILIKE $' + (queryParams.length + 1);
+      queryParams.push('%' + filters.name + '%');
+    }
+
+    if(filters.minEmployees && filters.maxEmployees){
+      if(filters.minEmployees > filters.maxEmployees){
+        throw new BadRequestError('Validation failed: minEmployees cannot be greater than maxEmployees', 400);
+      }
+    }
+  
+    if (filters.minEmployees!== undefined) {
+      whereClause += ' AND num_employees >= $' + (queryParams.length + 1);
+      queryParams.push(filters.minEmployees);
+
+    }
+  
+    if (filters.maxEmployees!== undefined) {
+      whereClause += ' AND num_employees <= $' + (queryParams.length + 1);
+      queryParams.push(filters.maxEmployees);
+    }
+  
+    if (whereClause !== '') {
+      whereClause = 'WHERE ' + whereClause;
+    }
+  
+    const companiesRes = await db.query(
+      `SELECT handle,
+              name,
+              description,
+              num_employees AS "numEmployees",
+              logo_url AS "logoUrl"
+       FROM companies
+       ${whereClause}
+       ORDER BY name`,
+      queryParams);
+    return companiesRes.rows;
+  }
+  
+
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
           `SELECT handle
@@ -44,23 +98,6 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
-   *
-   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
-   * */
-
-  static async findAll() {
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
-    return companiesRes.rows;
-  }
-
   /** Given a company handle, return data about company.
    *
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }
@@ -82,7 +119,7 @@ class Company {
 
     const company = companyRes.rows[0];
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+    if (!company) throw new NotFoundError(`No company: ${handle}`, 400);
 
     return company;
   }

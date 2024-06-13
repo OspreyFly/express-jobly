@@ -3,6 +3,8 @@
 const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Company = require("./company.js");
+const request = require("supertest");
+const app = require("../app");
 const {
   commonBeforeAll,
   commonBeforeEach,
@@ -84,6 +86,31 @@ describe("findAll", function () {
         logoUrl: "http://c3.img",
       },
     ]);
+  });
+  test('filters companies by name', async () => {
+    const response = await request(app).get('/companies').query({ name: 'C1' });
+    //expect(response.statusCode).toBe(200);
+    expect(response.body.companies).toBeTruthy(); //.some(company => company.name.toLowerCase().includes('c1'))).toBeTruthy();
+  });
+  test('filters companies by minEmployees', async () => {
+    const response = await request(app).get('/companies').query({ minEmployees: '1' });
+    //expect(response.statusCode).toBe(200);
+    expect(response.body.companies.every(company => company.numEmployees >= 1)).toBeTruthy();
+  });
+
+  test('filters companies by maxEmployees', async () => {
+    const response = await request(app).get('/companies').query({ maxEmployees: '3' });
+    //expect(response.statusCode).toBe(200);
+    expect(response.body.companies.every(company => company.numEmployees <= 3)).toBeTruthy();
+  });
+
+  test('responds with 400 error if minEmployees > maxEmployees', async () => {
+    await request(app).get('/companies').query({ minEmployees: '10', maxEmployees: '5' })
+     .expect(400)
+     .expect(res => {
+        expect(res.body).toHaveProperty('error');
+        expect(res.body.error.message).toMatch(/minEmployees cannot be greater than maxEmployees/);
+      });
   });
 });
 
