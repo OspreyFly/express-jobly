@@ -43,7 +43,7 @@ function ensureLoggedIn(req, res, next) {
     return next();
   } catch (err) {
     console.warn("Could not check ANON permissions");
-    return next(new UnauthorizedError(401));
+    return next(new UnauthorizedError());
   }
 }
 
