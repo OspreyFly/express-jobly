@@ -6,15 +6,19 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   const keys = Object.keys(dataToUpdate);
   if (keys.length === 0) throw new BadRequestError("No data");
 
-  // {firstName: 'Aliya', age: 32} => ['"first_name"=$1', '"age"=$2']
+  // Prepare the columns part of the SQL statement
   const cols = keys.map((colName, idx) =>
-      `"${jsToSql[colName] || colName}"=$${idx + 1}`,
-  );
+    `"${jsToSql[colName] || colName}"=$${idx + 1}`
+  ).join(","); // Join columns with commas
+
+  // Prepare the values array to match the placeholders in the SQL statement
+  const values = Object.values(dataToUpdate);
 
   return {
-    setCols: cols.join(", "),
-    values: Object.values(dataToUpdate),
+    setCols: cols,
+    values: values,
   };
 }
+
 
 module.exports = { sqlForPartialUpdate };

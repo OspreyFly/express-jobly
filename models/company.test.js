@@ -89,18 +89,18 @@ describe("findAll", function () {
   });
   test('filters companies by name', async () => {
     const response = await request(app).get('/companies').query({ name: 'C1' });
-    //expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body.companies).toBeTruthy(); //.some(company => company.name.toLowerCase().includes('c1'))).toBeTruthy();
   });
   test('filters companies by minEmployees', async () => {
     const response = await request(app).get('/companies').query({ minEmployees: '1' });
-    //expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body.companies.every(company => company.numEmployees >= 1)).toBeTruthy();
   });
 
   test('filters companies by maxEmployees', async () => {
     const response = await request(app).get('/companies').query({ maxEmployees: '3' });
-    //expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body.companies.every(company => company.numEmployees <= 3)).toBeTruthy();
   });
 
