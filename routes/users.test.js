@@ -47,7 +47,6 @@ describe("POST /users", function () {
   });
 
   test("works for users: create admin", async function () {
-    // Assuming you have a way to generate an admin token
     const adminToken = u1Token;
     const resp = await request(app)
        .post("/users")
@@ -111,6 +110,24 @@ describe("POST /users", function () {
     expect(resp.statusCode).toEqual(400);
   });
 });
+
+describe("POST /users/:username/jobs/:job_id", function () {
+  test("applies", async function () {
+    const resp = await request(app)
+      .post("/users/u1/jobs/1")
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({
+      applied: { job_id: 1}
+    });
+  });
+  test("bad request if no job_id found", async function () {
+    const resp = await request(app)
+      .post("/users/u1/jobs/7")
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.error).toBeTruthy();
+  });
+});
+
 
 /************************************** GET /users */
 

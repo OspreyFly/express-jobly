@@ -43,6 +43,26 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
   }
 });
 
+/** POST /:username/jobs/:job_id  params: { username, job_id }  => response: { applied: job_id }
+ *
+ * Adds a new application.
+ *
+ * Authorization required: login
+ **/
+
+router.post('/:username/jobs/:job_id', ensureLoggedIn, async (req, res, next) => {
+  const { username } = req.params;
+  const { job_id } = req.params;
+
+  try {
+    const { applied } = await User.apply(username, job_id);
+    res.json({ "applied": applied });
+  } catch (err) {
+    return next(err); 
+  }
+});
+
+
 
 /** GET / => { users: [ {username, firstName, lastName, email }, ... ] }
  *
@@ -117,6 +137,5 @@ router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
     return next(err);
   }
 });
-
 
 module.exports = router;

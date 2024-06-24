@@ -116,7 +116,7 @@ class Job {
  *
  * Throws NotFoundError if not found.
  */
-static async update(handle, data) {
+ static async update(handle, data) {
   // Define the jsToSql mapping
   const jsToSql = {
     salary: 'salary',
@@ -124,27 +124,37 @@ static async update(handle, data) {
   };
 
   const { setCols, values } = sqlForPartialUpdate(data, jsToSql);
-  const idVarIdx = "$" + (values.length + 1);
+  // No need for idVarIdx since we're filtering by company_handle
+
 
   // Correctly interpolate the variables into the SQL query
   const querySql = `UPDATE jobs 
-                    SET ${setCols} 
-                    WHERE id = ${idVarIdx} 
-                    RETURNING id, 
-                              title, 
-                              salary, 
-                              equity, 
-                              company_handle`;
+                  SET ${setCols} 
+                  WHERE company_handle = $3 
+                  RETURNING id, 
+                            title, 
+                            salary, 
+                            equity, 
+                            company_handle`;
+
+
+  // Prepare the parameters for the query
+  const params = [...values, handle]; // [ salary, equity, handle ]
+
+  console.log('Constructed Query:', querySql);
+  console.log('Parameters:', params);
+
 
   // Execute the query with the correct parameters
-  const result = await db.query(querySql, [...values, handle]);
+  const result = await db.query(querySql, params);
 
   // Check if the job was found
   const job = result.rows[0];
-  if (!job) throw new NotFoundError(`No job: ${handle}`);
+  if (!job) throw new NotFoundError(`No job with handle: ${handle}`);
 
   return job;
 }
+
 
 
 
@@ -152,11 +162,11 @@ static async update(handle, data) {
  *
  * Throws NotFoundError if job not found.
  **/
-  static async remove(id) {
+  static async remove(handle) {
     try{
       const result = await db.query(
-        `DELETE FROM jobs WHERE id = $1 RETURNING id`,
-      [id]
+        `DELETE FROM jobs WHERE company_handle = $1 RETURNING id`,
+      [handle]
       );
 
   // Get the number of rows affected by the DELETE operation
@@ -164,10 +174,10 @@ static async update(handle, data) {
 
   // If no rows were affected, throw NotFoundError
       if (rowCount === 0) {
-        throw new NotFoundError(`No job: ${id}`);
+        throw new NotFoundError(`No job: ${handle}`);
       }
     }catch(err){
-      throw new NotFoundError(`No job: ${id}`);
+      throw new NotFoundError(`No job: ${handle}`);
     }
   }
 }

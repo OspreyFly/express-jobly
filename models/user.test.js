@@ -228,3 +228,18 @@ describe("remove", function () {
     }
   });
 });
+
+/************************************** apply */
+
+describe("apply", function () {
+  test("works", async function () {
+    const apply =  await User.apply("u1", 1);
+    expect(apply).toEqual(
+    { 
+      applied: { job_id: 1 }
+    });
+    const res = await db.query(
+      "SELECT * FROM users");
+  expect(res.rows.length).toEqual(2);
+  });
+});

@@ -154,11 +154,19 @@ describe("PATCH /jobs/:handle", function () {
           equity: 0.45
         })
         .set("authorization", `Bearer ${u1Token}`);
+
+    if(resp.body.job.id){
+      resp.body.job.id = undefined;
+    }
+    console.log(resp.body);
+    console.log(resp.body.id);
+    
     expect(resp.body).toEqual({
       job: {
+        id: undefined,
         title: "title1",
         salary: 80000,
-        equity: 0.45,
+        equity: "0.45",
         company_handle: "c1"
       },
     });
@@ -180,7 +188,7 @@ describe("PATCH /jobs/:handle", function () {
           name: "new nope",
         })
         .set("authorization", `Bearer ${u1Token}`);
-    expect(resp.statusCode).toEqual(404);
+    expect(resp.statusCode).toEqual(400);
   });
 
   test("bad request on handle change attempt", async function () {

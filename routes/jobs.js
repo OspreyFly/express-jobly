@@ -113,8 +113,8 @@ router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     } 
-
-    const job = {"job": { "company"}}//await Job.update(req.params.handle, req.body);
+    const handle = req.params.handle;
+    const job = await Job.update(handle, req.body);
     return res.json({ job });
   } catch (err) {
     return next(err);

@@ -1,14 +1,12 @@
 const { BadRequestError } = require("../expressError");
 
-// THIS NEEDS SOME GREAT DOCUMENTATION.
-
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   const keys = Object.keys(dataToUpdate);
   if (keys.length === 0) throw new BadRequestError("No data");
 
-  // Prepare the columns part of the SQL statement
+  // Ensure column names and placeholders are properly quoted
   const cols = keys.map((colName, idx) =>
-    `"${jsToSql[colName] || colName}"=$${idx + 1}`
+    `"${jsToSql[colName] || colName}" = $${idx + 1}`
   ).join(","); // Join columns with commas
 
   // Prepare the values array to match the placeholders in the SQL statement
@@ -20,5 +18,6 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
-
 module.exports = { sqlForPartialUpdate };
+
+
